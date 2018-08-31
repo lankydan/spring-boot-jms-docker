@@ -16,14 +16,15 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class OrderTransaction {
 
-  @Id private String id;
-  private String from;
-  private String to;
-  private BigDecimal amount;
+    @Id
+    private String id;
+    private String from;
+    private String to;
+    private BigDecimal amount;
 
-  public OrderTransaction(final String from, final String to, final BigDecimal amount) {
-    this.from = from;
-    this.to = to;
-    this.amount = amount;
-  }
+    public OrderTransaction(final String from, final String to, final BigDecimal amount) {
+        this.from = from;
+        this.to = to;
+        this.amount = amount;
+    }
 }

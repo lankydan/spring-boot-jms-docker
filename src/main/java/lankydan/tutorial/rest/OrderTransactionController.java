@@ -11,7 +11,11 @@ import java.math.BigDecimal;
 @RequestMapping("/transaction")
 public class OrderTransactionController {
 
-  @Autowired private JmsTemplate jmsTemplate;
+  private final JmsTemplate jmsTemplate;
+
+  public OrderTransactionController(JmsTemplate jmsTemplate) {
+    this.jmsTemplate = jmsTemplate;
+  }
 
   @PostMapping("/send")
   public void send(@RequestBody OrderTransaction transaction) {
