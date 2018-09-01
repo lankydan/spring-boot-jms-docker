@@ -1,0 +1,23 @@
+version: '3'
+services:
+  appcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+#        This works but the hard coded name sucks a bit (why does the maven plugin not work here?)
+        JAR_FILE: /spring-boot-jms-tutorial-1.0.0.jar
+    ports:
+    - "4000:8090"
+  activemqcontainer:
+    image: "rmohr/activemq"
+    ports:
+    - "8161:8161"
+  mongocontainer:
+    image: "mongo"
+    volumes:
+    - "~/mongo-data:/data/db"
+
+#docker run -d --name activemqcontainer -p 8161:8161 --network=spring-boot-jms rmohr/activemq
+#docker run -d --name mongocontainer --network=spring-boot-jms -v ~/mongo-data:/data/db mongo
+#docker run -p 4000:8090 --network=spring-boot-jms springio/spring-boot-jms-tutorial

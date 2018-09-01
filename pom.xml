@@ -63,10 +63,20 @@
                 <groupId>com.spotify</groupId>
                 <artifactId>dockerfile-maven-plugin</artifactId>
                 <version>1.3.6</version>
+                <executions>
+                    <execution>
+                        <id>default</id>
+                        <goals>
+                            <goal>build</goal>
+                            <goal>push</goal>
+                        </goals>
+                    </execution>
+                </executions>
                 <configuration>
-                    <repository>${docker.image.prefix}/${project.artifactId}</repository>
+                    <repository>dan_newton/${project.artifactId}</repository>
                     <buildArgs>
                         <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                        <!--<JAR_FILE>spring-boot-jms.jar</JAR_FILE>-->
                     </buildArgs>
                 </configuration>
             </plugin>
