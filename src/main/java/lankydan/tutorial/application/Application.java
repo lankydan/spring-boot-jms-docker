@@ -12,7 +12,6 @@ import org.springframework.jms.config.JmsListenerContainerFactory;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
-import org.springframework.util.ErrorHandler;
 
 import javax.jms.ConnectionFactory;
 
@@ -32,19 +31,7 @@ public class Application {
       ConnectionFactory connectionFactory,
       DefaultJmsListenerContainerFactoryConfigurer configurer) {
     DefaultJmsListenerContainerFactory factory = new DefaultJmsListenerContainerFactory();
-
-    // anonymous class
-    factory.setErrorHandler(
-        new ErrorHandler() {
-          @Override
-          public void handleError(Throwable t) {
-            System.err.println("An error has occurred in the transaction");
-          }
-        });
-
-    // lambda function
     factory.setErrorHandler(t -> System.out.println("An error has occurred in the transaction"));
-
     configurer.configure(factory, connectionFactory);
     return factory;
   }

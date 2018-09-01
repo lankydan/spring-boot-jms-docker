@@ -20,7 +20,6 @@ public class OrderTransactionReceiver {
     public void receiveMessage(OrderTransaction transaction) {
         System.out.println("<" + count + "> Received <" + transaction + ">");
         count++;
-        //    throw new RuntimeException();
-    transactionRepository.save(transaction);
+        transactionRepository.save(transaction);
     }
 }

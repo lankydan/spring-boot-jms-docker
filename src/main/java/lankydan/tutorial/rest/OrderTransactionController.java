@@ -20,7 +20,6 @@ public class OrderTransactionController {
   @PostMapping("/send")
   public void send(@RequestBody OrderTransaction transaction) {
     System.out.println("Sending a transaction.");
-    jmsTemplate.convertAndSend(
-        "OrderTransactionQueue", transaction);
+    jmsTemplate.convertAndSend("OrderTransactionQueue", transaction);
   }
 }
