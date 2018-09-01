@@ -75,7 +75,7 @@
                 <configuration>
                     <repository>dan_newton/${project.artifactId}</repository>
                     <buildArgs>
-                        <JAR_FILE>target/${project.build.finalName}.jar</JAR_FILE>
+                        <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
                         <!--<JAR_FILE>spring-boot-jms.jar</JAR_FILE>-->
                     </buildArgs>
                 </configuration>
