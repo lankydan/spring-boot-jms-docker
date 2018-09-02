@@ -1,8 +1,8 @@
-I have finally got round to learning how to use Docker past the level of knowing what it is and does without ever using it. This is my first post that I have attempted to use Docker in and will probably be what I refer to whenever I start a new project (for Java or Kotlin anyway). 
+I have finally got round to learning how to use Docker past the level of knowing what it is and does without ever using it. This is the first post that I have attempted to use Docker in and will probably be what I refer to whenever I start a new project (for Java or Kotlin anyway). 
 
-This will be a short post that takes an existing project (from one of my other posts) and alter it so it can run inside of containers. I doubt this post will contain anything impressive but I know it will help me in the future and maybe it will help you now. 
+This will be a short post that takes an existing project (from one of my other posts) and alters it so it can run inside of containers. I doubt this post will contain anything impressive but I know it will help me in the future and maybe it will help you now. 
 
-Before we begin, lets take a quick look at the existing project. Here are links to the [code](https://github.com/lankydan/spring-boot-jms) and the corresponding [blog post](https://lankydanblog.com/2017/06/18/using-jms-in-spring-boot/). The blog post covers all information about the code. Here's the quick rundown so we can get on with this post. The old project is a Spring Boot application with a MongoDB database and ActiveMQ message queue. All these components are prime fodder for containerisation.
+Before we begin, let's take a quick look at the existing project. Here are links to the [code](https://github.com/lankydan/spring-boot-jms) and the corresponding [blog post](https://lankydanblog.com/2017/06/18/using-jms-in-spring-boot/). The blog post covers all the information about the code. Here's the quick rundown so we can get on with this post. The old project is a Spring Boot application with a MongoDB database and ActiveMQ message queue. All these components are prime fodder for containerisation.
 
 One last comment, for the content of this post, I am assuming that you have already installed Docker or can figure out how to do so yourself.
 
@@ -10,7 +10,7 @@ One last comment, for the content of this post, I am assuming that you have alre
 
 First up, the Spring Boot application.
 
-This is the only part of the project that contains our code. The rest are just images downloaded from someone elses repository. To start moving this application towards running in a container, we need to create a `Dockerfile` that specifies the content of an image:
+This is the only part of the project that contains our code. The rest are just images downloaded from someone else's repository. To start moving this application towards running in a container, we need to create a `Dockerfile` that specifies the content of an image:
 ```Dockerfile
 FROM openjdk:8-jdk-alpine
 MAINTAINER Dan Newton
@@ -18,7 +18,7 @@ ADD target/spring-boot-jms-tutorial-1.0.0.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "/app.jar"]
 ```
-This takes the base image of `openjdk:8-jdk-alpine` which is a good starting point for the application, adds the Jar built from the application code (naming it `app.jar`) and exposes a port that can be communicated with between containers. The final line defines the command that is run when the image is ran in a container. This is what starts the Spring application.
+This takes the base image of `openjdk:8-jdk-alpine` which is a good starting point for the application, adds the Jar built from the application code (naming it `app.jar`) and exposes a port that can be communicated with between containers. The final line defines the command that executed when the image is run in a container. This is what starts the Spring application.
 
 To build an image from the `Dockerfile` run the command below:
 ```
@@ -28,7 +28,7 @@ There is now an image named `spring-boot-jms-tutorial` (`-t` lets us define a na
 ```
 docker run --name application -p 4000:8080 spring-boot-jms-tutorial
 ```
-This will create and run a container built from the `spring-boot-jms-tutorial` image. It names the container `application` and the `-p` property allows a port from local machine to mapped to a port inside the container. To access port `8080` of the container we simply need to use port `4000` on our own machine.
+This will create and run a container built from the `spring-boot-jms-tutorial` image. It names the container `application` and the `-p` property allows a port from a local machine to mapped to a port inside the container. To access port `8080` of the container we simply need to use port `4000` on our own machine.
 
 If we stopped this container and wanted to run it again, we should use the command:
 ```
@@ -43,22 +43,22 @@ MongoDB connection failing:
 Exception in monitor thread while connecting to server mongocontainer:27017
 
 com.mongodb.MongoSocketException: mongocontainer: Name does not resolve
-	at com.mongodb.ServerAddress.getSocketAddress(ServerAddress.java:188) ~[mongodb-driver-core-3.6.4.jar!/:na]
-	at com.mongodb.connection.SocketStreamHelper.initialize(SocketStreamHelper.java:59) ~[mongodb-driver-core-3.6.4.jar!/:na]
-	at com.mongodb.connection.SocketStream.open(SocketStream.java:57) ~[mongodb-driver-core-3.6.4.jar!/:na]
-	at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:126) ~[mongodb-driver-core-3.6.4.jar!/:na]
-	at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:114) ~[mongodb-driver-core-3.6.4.jar!/:na]
-	at java.lang.Thread.run(Thread.java:748) [na:1.8.0_171]
+    at com.mongodb.ServerAddress.getSocketAddress(ServerAddress.java:188) ~[mongodb-driver-core-3.6.4.jar!/:na]
+    at com.mongodb.connection.SocketStreamHelper.initialize(SocketStreamHelper.java:59) ~[mongodb-driver-core-3.6.4.jar!/:na]
+    at com.mongodb.connection.SocketStream.open(SocketStream.java:57) ~[mongodb-driver-core-3.6.4.jar!/:na]
+    at com.mongodb.connection.InternalStreamConnection.open(InternalStreamConnection.java:126) ~[mongodb-driver-core-3.6.4.jar!/:na]
+    at com.mongodb.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:114) ~[mongodb-driver-core-3.6.4.jar!/:na]
+    at java.lang.Thread.run(Thread.java:748) [na:1.8.0_171]
 Caused by: java.net.UnknownHostException: mongocontainer: Name does not resolve
-	at java.net.Inet4AddressImpl.lookupAllHostAddr(Native Method) ~[na:1.8.0_171]
-	at java.net.InetAddress$2.lookupAllHostAddr(InetAddress.java:928) ~[na:1.8.0_171]
-	at java.net.InetAddress.getAddressesFromNameService(InetAddress.java:1323) ~[na:1.8.0_171]
-	at java.net.InetAddress.getAllByName0(InetAddress.java:1276) ~[na:1.8.0_171]
-	at java.net.InetAddress.getAllByName(InetAddress.java:1192) ~[na:1.8.0_171]
-	at java.net.InetAddress.getAllByName(InetAddress.java:1126) ~[na:1.8.0_171]
-	at java.net.InetAddress.getByName(InetAddress.java:1076) ~[na:1.8.0_171]
-	at com.mongodb.ServerAddress.getSocketAddress(ServerAddress.java:186) ~[mongodb-driver-core-3.6.4.jar!/:na]
-	... 5 common frames omitted
+    at java.net.Inet4AddressImpl.lookupAllHostAddr(Native Method) ~[na:1.8.0_171]
+    at java.net.InetAddress$2.lookupAllHostAddr(InetAddress.java:928) ~[na:1.8.0_171]
+    at java.net.InetAddress.getAddressesFromNameService(InetAddress.java:1323) ~[na:1.8.0_171]
+    at java.net.InetAddress.getAllByName0(InetAddress.java:1276) ~[na:1.8.0_171]
+    at java.net.InetAddress.getAllByName(InetAddress.java:1192) ~[na:1.8.0_171]
+    at java.net.InetAddress.getAllByName(InetAddress.java:1126) ~[na:1.8.0_171]
+    at java.net.InetAddress.getByName(InetAddress.java:1076) ~[na:1.8.0_171]
+    at com.mongodb.ServerAddress.getSocketAddress(ServerAddress.java:186) ~[mongodb-driver-core-3.6.4.jar!/:na]
+    ... 5 common frames omitted
 ```
 ActiveMQ also isn't there:
 ```
@@ -121,29 +121,29 @@ Setting up ActiveMQ is just as simple as Mongo. Run the command below:
 ```
 docker run -d --name activemqcontainer -p 8161:8161 rmohr/activemq
 ```
-Here the `8161` ports are mapped from the container to the machine its running on, allowing the admin console to be accessed from outside the container.
+Here the `8161` ports are mapped from the container to the machine it's running on, allowing the admin console to be accessed from outside the container.
 
 ### Tying it all together
 
 If you have been running all these commands as you read through the post, you would have noticed that the `application` container hasn't actually been able to see the `mongocontainer` and `activemqcontainer`. This is because they are not running within the same network. Getting them to communicate is not difficult and takes only a few extra steps.
 
-By default Docker creates a Bridge network when setting one up without any extra configuration. Below is how to do so:
+By default, Docker creates a Bridge network when setting one up without any extra configuration. Below is how to do so:
 ```
 docker network create network
 ```
-Now that the network (named `network`) is created, the commands that were ran previously need to be altered to create containers that will connect to the network instead. Below are the 3 commands used to create the containers in the previous sections, each altered to join the network.
+Now that the network (named `network`) is created, the commands that were run previously need to be altered to create containers that will connect to the network instead. Below are the 3 commands used to create the containers in the previous sections, each altered to join the network.
 ```
 docker run -d --name mongocontainer --network=network mongo
 docker run -d --name activemqcontainer -p 8161:8161 --network=network rmohr/activemq
 docker run --name application -p 4000:8080 --network=network spring-boot-jms-tutorial
 ```
-Once these are all ran, the application as a whole will now work. Each container can see each other. Allowing the `application` container to connect to MongoDB and ActiveMQ in their respective containers.
+Once these are all run, the application as a whole will now work. Each container can see each other. Allowing the `application` container to connect to MongoDB and ActiveMQ in their respective containers.
 
-At this point everything is working. It runs in the same way that I remember it working when I had everything setup on my own laptop. But, this time round nothing is setup locally... Except for Docker!
+At this point, everything is working. It runs in the same way that I remember it working when I had everything set up on my own laptop. But, this time around nothing is setup locally... Except for Docker!
 
 ### Docker Composing it up
 
-We could of stopped there, but this next section will make running everything even easier. Docker Compose allows use to effectively bring all the commands that we ran earlier together and start all the containers and their network all in a single command. Obviously, there is some more setup but in the end I think the amount of typing actually goes down.
+We could have stopped there, but this next section will make running everything even easier. Docker Compose allows use to effectively bring all the commands that we ran earlier together and start all the containers and their network all in a single command. Obviously, there is some more setup but in the end, I think the amount of typing actually goes down.
 
 To do this, we need to create a `docker-compose.yml` file:
 ```yml
@@ -174,7 +174,7 @@ ENTRYPOINT ["java", "-jar", "/app.jar"]
 ```
 This is pretty much everything that needs to be done.
 
-`appcontainer` is the Spring application container built from the projects code. The `build` property of the container tells Docker to build the image based on the projects `Dockerfile` found in the project's root directory. It passes in the `JAR_FILE` argument to the `Dockerfile` moving some of the configuration into this file instead.
+`appcontainer` is the Spring application container built from the project's code. The `build` property of the container tells Docker to build the image based on the projects `Dockerfile` found in the project's root directory. It passes in the `JAR_FILE` argument to the `Dockerfile` moving some of the configuration into this file instead.
 
 The other two containers don't require much setup. As with the previous commands, the images they are built from are specified and `activemqcontainer` adds configuration around it's mapped ports.
 
@@ -214,15 +214,15 @@ The names of the containers are prepended with the name of the project and the n
 
 That is all there is to it... For a simple setup anyway, I'm sure there is much more the Docker gods could do but I am not one of them... Yet. 
 
-In conclusion we took an existing application that was written to work locally on a machine. This meant that this machine needed to have everything setup with both MongoDB and ActiveMQ installed. Instead, by using containers we could skip all of this and instead only install Docker who will manage all of the dependencies for us. We looked at how to move each part of the application into a container and then tied it all together with Docker Compose. Leaving us, at the end of all this, with a single command that can move us from absolutely nothing to everything needed to run the application.
+In conclusion, we took an existing application that was written to work locally on a machine. This meant that this machine needed to have everything set up with both MongoDB and ActiveMQ installed. Instead, by using containers we could skip all of this and instead only install Docker who will manage all of the dependencies for us. We looked at how to move each part of the application into a container and then tied it all together with Docker Compose. Leaving us, at the end of all this, with a single command that can move us from absolutely nothing to everything needed to run the application.
 
 The code used in this post can be found on my [GitHub](https://github.com/lankydan/spring-boot-jms-docker).
 
 If you found this post helpful, you can follow me on Twitter at [@LankyDanDev](www.twitter.com/LankyDanDev) to keep up with my new posts.
 
 #### Some links that I found helpful
-[https://docs.docker.com/get-started/part2/](https://docs.docker.com/get-started/part2/)
-[http://www.briansjavablog.com/2016/08/docker-multi-container-app.html](http://www.briansjavablog.com/2016/08/docker-multi-container-app.html)
-[https://docs.docker.com/compose/gettingstarted/#step-3-define-services-in-a-compose-file](https://docs.docker.com/compose/gettingstarted/#step-3-define-services-in-a-compose-file)
-[https://docs.docker.com/compose/compose-file/#build](https://docs.docker.com/compose/compose-file/#build)
-[https://www.linkedin.com/pulse/dockerize-spring-boot-mongodb-application-aymen-kanzari](https://www.linkedin.com/pulse/dockerize-spring-boot-mongodb-application-aymen-kanzari)
+[Docker get started - part 2](https://docs.docker.com/get-started/part2/)
+[Brians Java Blog - Docker multi container app](http://www.briansjavablog.com/2016/08/docker-multi-container-app.html)
+[Docker compose getting started - Define services in a compose file](https://docs.docker.com/compose/gettingstarted/#step-3-define-services-in-a-compose-file)
+[Docker compose - build)
+[Aymen Kanzari - Dockerize Spring Boot MongoDB application](https://www.linkedin.com/pulse/dockerize-spring-boot-mongodb-application-aymen-kanzari)
