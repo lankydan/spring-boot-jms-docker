@@ -10,36 +10,32 @@ One last comment, for the content of this post, I am assuming that you have alre
 
 First up, the Spring Boot application.
 
-This is the only part of the project that contains our code. The rest are just images downloaded from someone else's repository. To start moving this application towards running in a container, we need to create a `Dockerfile` that specifies the content of an image:
-```Dockerfile
-FROM openjdk:8-jdk-alpine
-MAINTAINER Dan Newton
-ADD target/spring-boot-jms-tutorial-1.0.0.jar app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-```
-This takes the base image of `openjdk:8-jdk-alpine` which is a good starting point for the application, adds the Jar built from the application code (naming it `app.jar`) and exposes a port for communication between containers. The final line defines the command that executed when the image is run in a container. This is what starts the Spring application.
+This is the only part of the project that contains our code. The rest are just images downloaded from someone else's repository. To start moving this application towards running in a container, we need to create a <code>Dockerfile</code> that specifies the content of an image:
 
-To build an image from the `Dockerfile` run the command below:
-```
+[gist https://gist.github.com/lankydan/0f14d4c6f53cea31de677996d07e54b6 /]
+
+This takes the base image of <code>openjdk:8-jdk-alpine</code> which is a good starting point for the application, adds the Jar built from the application code (naming it <code>app.jar</code>) and exposes a port for communication between containers. The final line defines the command that executed when the image is run in a container. This is what starts the Spring application.
+
+To build an image from the <code>Dockerfile</code> run the command below (assuming you have already built the application code):
+<pre>
 docker build -t spring-boot-jms-tutorial .
-```
-There is now an image named `spring-boot-jms-tutorial` (`-t` lets us define the name). This can now be used to create a container that executes the code that is packed into the image's Jar:
-```
+</pre>
+There is now an image named <code>spring-boot-jms-tutorial</code> (<code>-t</code> lets us define the name). This can now be used to create a container that executes the code that is packed into the image's Jar:
+<pre>
 docker run --name application -p 4000:8080 spring-boot-jms-tutorial
-```
-This will create and run a container built from the `spring-boot-jms-tutorial` image. It names the container `application` and the `-p` property allows a port from a local machine to mapped to a port inside the container. To access port `8080` of the container we simply need to use port `4000` on our own machine.
+</pre>
+This will create and run a container built from the <code>spring-boot-jms-tutorial</code> image. It names the container <code>application</code> and the <code>-p</code> property allows a port from a local machine to mapped to a port inside the container. To access port <code>8080</code> of the container we simply need to use port <code>4000</code> on our own machine.
 
 If we stopped this container and wanted to run it again, we should use the command:
-```
+<pre>
 docker start application
-```
-Where `application` is the name of the container we created before. If `docker run` was used again it would create another new container rather than reusing the existing one. Actually, because we provided a name to the container, running the same `run` command from earlier will lead to an error.
+</pre>
+Where <code>application</code> is the name of the container we created before. If <code>docker run</code> was used again it would create another new container rather than reusing the existing one. Actually, because we provided a name to the container, running the same <code>run</code> command from earlier will lead to an error.
 
 Now the Spring application is successfully running in a container, but the logs are not looking very good. Let's have a quick look so we know what we need to do next.
 
 MongoDB connection failing:
-```
+<pre>
 Exception in monitor thread while connecting to server mongocontainer:27017
 
 com.mongodb.MongoSocketException: mongocontainer: Name does not resolve
@@ -59,85 +55,56 @@ Caused by: java.net.UnknownHostException: mongocontainer: Name does not resolve
     at java.net.InetAddress.getByName(InetAddress.java:1076) ~[na:1.8.0_171]
     at com.mongodb.ServerAddress.getSocketAddress(ServerAddress.java:186) ~[mongodb-driver-core-3.6.4.jar!/:na]
     ... 5 common frames omitted
-```
+</pre>
 ActiveMQ also isn't there:
-```
+<pre>
 Could not refresh JMS Connection for destination 'OrderTransactionQueue' - retrying using FixedBackOff{interval=5000, currentAttempts=1, maxAttempts=unlimited}. Cause: Could not connect to broker URL: tcp://activemqcontainer:61616. Reason: java.net.UnknownHostException: activemqcontainer
-```
+</pre>
 We will sort these out in the next sections so the application can work in its entirety.
 
 One last thing before we move onto looking at Mongo and ActiveMQ.
 
-The `dockerfile-maven-plugin` could also be used to help with the above which builds the container as part of running `mvn install`. I chose not to use it since I couldn't get it to work properly with `docker-compose`. Below is a quick example of using the plugin:
-```xml
-<build>
-    <plugins>
-        <plugin>
-            <groupId>com.spotify</groupId>
-            <artifactId>dockerfile-maven-plugin</artifactId>
-            <version>1.4.4</version>
-            <executions>
-                <execution>
-                    <id>default</id>
-                    <goals>
-                        <goal>build</goal>
-                        <goal>push</goal>
-                    </goals>
-                </execution>
-            </executions>
-            <configuration>
-                <!-- Names the image: spring-boot-jms-tutorial -->
-                <repository>${project.artifactId}</repository>
-                <buildArgs>
-                    <JAR_FILE>${project.build.finalName}.jar</JAR_FILE>
-                </buildArgs>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-```
-This then allows us to replace a few of the lines in the `Dockerfile`:
-```Dockerfile
-FROM openjdk:8-jdk-alpine
-MAINTAINER Dan Newton
-ARG JAR_FILE 
-ADD target/${JAR_FILE} app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-```
-Here one line has been added and one existing line is changed. The `JAR_FILE` argument replaces the original name of the Jar which is injected in by the plugin from the `pom.xml`. Make these changes and run `mvn install` and bam, your container is built with all the required code.
+The <code>dockerfile-maven-plugin</code> could also be used to help with the above which builds the container as part of running <code>mvn install</code>. I chose not to use it since I couldn't get it to work properly with <code>docker-compose</code>. Below is a quick example of using the plugin:
+
+[gist https://gist.github.com/lankydan/ae780633c6a418f54cbbe1440ebf1b88 /]
+
+This then allows us to replace a few of the lines in the <code>Dockerfile</code>:
+
+[gist https://gist.github.com/lankydan/b285267fb45689acceac6af3a3f33034 /]
+
+Here one line has been added and one existing line is changed. The <code>JAR_FILE</code> argument replaces the original name of the Jar which is injected in by the plugin from the <code>pom.xml</code>. Make these changes and run <code>mvn install</code> and bam, your container is built with all the required code.
 
 ### Using the MongoDB image
 
-There is a MongoDB image ready and waiting for us to use. It is ideally named `mongo`... What else did you expect? All we need to do is `run` the image and give it's container a name:
-```
+There is a MongoDB image ready and waiting for us to use. It is ideally named <code>mongo</code>... What else did you expect? All we need to do is <code>run</code> the image and give it's container a name:
+<pre>
 docker run -d --name mongocontainer mongo
-```
-Adding `-d` will run the container in the background. The name of the container is not just for convenience as the Spring application will need it later to connect to Mongo.
+</pre>
+Adding <code>-d</code> will run the container in the background. The name of the container is not just for convenience as the Spring application will need it later to connect to Mongo.
 
 ### Onto the ActiveMQ image
 
 Setting up ActiveMQ is just as simple as Mongo. Run the command below:
-```
+<pre>
 docker run -d --name activemqcontainer -p 8161:8161 rmohr/activemq
-```
-Here the `8161` ports are mapped from the container to the machine it's running on, allowing the admin console to be accessed from outside the container.
+</pre>
+Here the <code>8161</code> ports are mapped from the container to the machine it's running on, allowing the admin console to be accessed from outside the container.
 
 ### Tying it all together
 
-If you have been running all these commands as you read through the post, you would have noticed that the `application` container hasn't actually been able to see the `mongocontainer` and `activemqcontainer`. This is because they are not running within the same network. Getting them to communicate is not difficult and takes only a few extra steps.
+If you have been running all these commands as you read through the post, you would have noticed that the <code>application</code> container hasn't actually been able to see the <code>mongocontainer</code> and <code>activemqcontainer</code>. This is because they are not running within the same network. Getting them to communicate is not difficult and takes only a few extra steps.
 
 By default, Docker creates a Bridge network when setting one up without any extra configuration. Below is how to do so:
-```
+<pre>
 docker network create network
-```
-Now that the network (named `network`) is created, the commands that were run previously need to be altered to create containers that will connect to the network instead. Below are the 3 commands used to create the containers in the previous sections, each altered to join the network.
-```
+</pre>
+Now that the network (named <code>network</code>) is created, the commands that were run previously need to be altered to create containers that will connect to the network instead. Below are the 3 commands used to create the containers in the previous sections, each altered to join the network.
+<pre>
 docker run -d --name mongocontainer --network=network mongo
 docker run -d --name activemqcontainer -p 8161:8161 --network=network rmohr/activemq
 docker run --name application -p 4000:8080 --network=network spring-boot-jms-tutorial
-```
-Once these are all run, the application as a whole will now work. Each container can see each other. Allowing the `application` container to connect to MongoDB and ActiveMQ in their respective containers.
+</pre>
+Once these are all run, the application as a whole will now work. Each container can see each other. Allowing the <code>application</code> container to connect to MongoDB and ActiveMQ in their respective containers.
 
 At this point, everything is working. It runs in the same way that I remember it working when I had everything set up on my own laptop. But, this time around, nothing is setup locally... Except for Docker!
 
@@ -145,69 +112,50 @@ At this point, everything is working. It runs in the same way that I remember it
 
 We could have stopped there, but this next section will make running everything even easier. Docker Compose allows us to effectively bring all the commands that we ran earlier together and start all the containers and their network all in a single command. Obviously, there is some more setup but in the end, I think the amount of typing actually goes down.
 
-To do this, we need to create a `docker-compose.yml` file:
-```yml
-version: '3'
-services:
-  appcontainer:
-    build:
-      context: .
-      args:
-        JAR_FILE: /spring-boot-jms-tutorial-1.0.0.jar
-    ports:
-    - "4000:8080"
-  activemqcontainer:
-    image: "rmohr/activemq"
-    ports:
-    - "8161:8161"
-  mongocontainer:
-    image: "mongo"
-```
-Use with this version of the `Dockerfile`:
-```Dockerfile
-FROM openjdk:8-jdk-alpine
-MAINTAINER Dan Newton
-ARG JAR_FILE 
-ADD target/${JAR_FILE} app.jar
-EXPOSE 8080
-ENTRYPOINT ["java", "-jar", "/app.jar"]
-```
+To do this, we need to create a <code>docker-compose.yml</code> file:
+
+[gist https://gist.github.com/lankydan/0ee436d07ec642d87116daa14463f853 /]
+
+Use with this version of the <code>Dockerfile</code>:
+
+[gist https://gist.github.com/lankydan/b285267fb45689acceac6af3a3f33034 /]
+
 This is pretty much everything that needs to be done.
 
-`appcontainer` is the Spring application container built from the project's code. The `build` property of the container tells Docker to build the image based on the projects `Dockerfile` found in the project's root directory. It passes in the `JAR_FILE` argument to the `Dockerfile` moving some of the configuration into this file instead.
+<code>appcontainer</code> is the Spring application container built from the project's code. The <code>build</code> property of the container tells Docker to build the image based on the projects <code>Dockerfile</code> found in the project's root directory. It passes in the <code>JAR_FILE</code> argument to the <code>Dockerfile</code> moving some of the configuration into this file instead.
 
-The other two containers don't require much setup. As with the previous commands, the images they are built from are specified and `activemqcontainer` adds configuration around it's mapped ports.
+The other two containers don't require much setup. As with the previous commands, the images they are built from are specified and <code>activemqcontainer</code> adds configuration around it's mapped ports.
 
 The last piece of configuration happens in the background. A network is created and all the containers are added to it. This removes the need to create a network manually.
 
-All that is left to do is run the `up` command:
-```
+All that is left to do is run the <code>up</code> command:
+<pre>
 docker-compose up
-```
-This will build and run all the containers. The application code image is built if necessary. Running this exact command will output all the containers logs to the console, to do this in the background add the `-d` flag:
-```
+</pre>
+This will build and run all the containers. The application code image is built if necessary. Running this exact command will output all the containers logs to the console, to do this in the background add the <code>-d</code> flag:
+<pre>
 docker-compose up -d
-```
+</pre>
 After doing so, we can have a look at the created containers and network. Running:
-```
+<pre>
 docker ps -a --format "table {{.Image}}\t{{.Names}}"
-```
+</pre>
 Shows us:
-```
+<pre>
 IMAGE                          NAMES
 mongo                          spring-boot-jms_mongocontainer_1
 spring-boot-jms_appcontainer   spring-boot-jms_appcontainer_1
 rmohr/activemq                 spring-boot-jms_activemqcontainer_1
-```
+</pre>
 And the network:
-```
+<pre>
 docker network ls
-```
+</pre>
 Produces:
-```
+<pre>
 NETWORK ID          NAME                      DRIVER              SCOPE
 163edcfe5ada        spring-boot-jms_default   bridge              local
-```
+</pre>
 The names of the containers and network are prepended with the name of the project.
 
 ### Conclusion

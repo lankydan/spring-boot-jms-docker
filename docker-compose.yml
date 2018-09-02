@@ -3,7 +3,7 @@ services:
   appcontainer:
     build:
       context: .
-      dockerfile: Dockerfile
+#      dockerfile: Dockerfile
       args:
 #        This works but the hard coded name sucks a bit (why does the maven plugin not work here?)
         JAR_FILE: /spring-boot-jms-tutorial-1.0.0.jar

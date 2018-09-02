@@ -57,7 +57,7 @@
                     <!--</execution>-->
                 <!--</executions>-->
                 <!--<configuration>-->
-                    <!--<repository>dan_newton/${project.artifactId}</repository>-->
+                    <!--<repository>${project.artifactId}</repository>-->
                     <!--<buildArgs>-->
                         <!--<JAR_FILE>${project.build.finalName}.jar</JAR_FILE>-->
                     <!--</buildArgs>-->
