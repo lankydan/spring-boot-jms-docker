@@ -23,3 +23,4 @@ With the body:
   "amount":200
 }
 ```
+The blog post [Using Docker to shove an existing application into some containers](https://lankydanblog.com/2018/09/02/using-docker-to-shove-an-existing-application-into-some-containers/) contains context for this repository.
